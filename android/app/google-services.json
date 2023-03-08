@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "996311847975",
+    "project_id": "homegrown-4ade0",
+    "storage_bucket": "homegrown-4ade0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:996311847975:android:fd1c28cd33177a5f05aa02",
+        "android_client_info": {
+          "package_name": "com.local.homegrown"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "996311847975-gbn73rm3lhh49qgtuekf2oigbhod58r2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbxwI_7zTYjsGVXOBd0TNFTOQRvDH5Mwo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "996311847975-gbn73rm3lhh49qgtuekf2oigbhod58r2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "996311847975-5ii4qon8mleaqorf5klqc2vq7n53mk5l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.local.homeGrown"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
