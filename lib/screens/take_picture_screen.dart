@@ -36,7 +36,8 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
   XFile? image;
 
   initializeCamera(int cameraIndex) {
-    _controller = CameraController(widget.camera, ResolutionPreset.high);
+    _controller = CameraController(widget.camera, ResolutionPreset.high,
+        enableAudio: false);
     _initializeControllerFuture = _controller.initialize();
   }
 
