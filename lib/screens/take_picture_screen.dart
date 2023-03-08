@@ -163,7 +163,6 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
-          print('builder');
           if (snapshot.connectionState == ConnectionState.done) {
             return StreamBuilder(
                 stream: database.allGardenPlants,
