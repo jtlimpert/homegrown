@@ -32,6 +32,7 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
   late Future<void> _initializeControllerFuture;
   int selectedCamera = 0;
   List<File> capturedImages = [];
+  bool loading = false;
 
   XFile? image;
 
@@ -44,6 +45,7 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
   @override
   void initState() {
     super.initState();
+    loading = false;
     initializeCamera(selectedCamera);
   }
 
@@ -112,43 +114,68 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             FloatingActionButton(
-              onPressed: () async {
-                setState(() {
-                  image = null;
-                });
-              },
-              child: const Icon(Icons.delete),
+              onPressed: loading
+                  ? null
+                  : () async {
+                      setState(() {
+                        image = null;
+                        loading = false;
+                      });
+                    },
+              child: loading
+                  ? const CircularProgressIndicator(
+                      color: Colors.black,
+                    )
+                  : const Icon(Icons.delete),
             ),
             const Padding(padding: EdgeInsets.only(left: 20, right: 20)),
             FloatingActionButton(
               heroTag: 'photo',
-              onPressed: () async {
-                final file = File(image!.path);
-                final storageRef = FirebaseStorage.instance.ref();
-                final imageRef = storageRef.child(image!.name);
-                try {
-                  await imageRef.putFile(file);
-                  var imageUrl = await imageRef.getDownloadURL();
-                  var imageName = imageRef.name;
-                  if (widget.garden != null && widget.garden?.id != null) {
-                    await database.editGarden(
-                        widget.garden!, imageUrl, imageName);
-                  } else {
-                    await database.addNewGarden(Garden(
-                        images: [GardenImage(url: imageUrl, name: imageName)],
-                        userId: FirebaseAuth.instance.currentUser!.uid,
-                        id: widget.garden?.id));
-                  }
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                  }
-                } catch (e) {
-                  if (kDebugMode) {
-                    print(e);
-                  }
-                }
-              },
-              child: const Icon(Icons.save),
+              onPressed: loading
+                  ? null
+                  : () async {
+                      setState(() {
+                        loading = true;
+                      });
+                      final file = File(image!.path);
+                      final storageRef = FirebaseStorage.instance.ref();
+                      final imageRef = storageRef.child(image!.name);
+                      try {
+                        await imageRef.putFile(file);
+                        var imageUrl = await imageRef.getDownloadURL();
+                        var imageName = imageRef.name;
+                        if (widget.garden != null &&
+                            widget.garden?.id != null) {
+                          await database.editGarden(
+                              widget.garden!, imageUrl, imageName);
+                        } else {
+                          await database.addNewGarden(Garden(
+                              images: [
+                                GardenImage(url: imageUrl, name: imageName)
+                              ],
+                              userId: FirebaseAuth.instance.currentUser!.uid,
+                              id: widget.garden?.id));
+                        }
+                        if (context.mounted) {
+                          setState(() {
+                            loading = false;
+                          });
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        setState(() {
+                          loading = false;
+                        });
+                        if (kDebugMode) {
+                          print(e);
+                        }
+                      }
+                    },
+              child: loading
+                  ? const CircularProgressIndicator(
+                      color: Colors.black,
+                    )
+                  : const Icon(Icons.save),
             ),
           ],
         ),
@@ -216,24 +243,37 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'photo',
-        onPressed: () async {
-          try {
-            await _initializeControllerFuture;
+        onPressed: loading
+            ? null
+            : () async {
+                try {
+                  setState(() {
+                    loading = true;
+                  });
+                  await _initializeControllerFuture;
 
-            final newImage = await _controller.takePicture();
+                  final newImage = await _controller.takePicture();
 
-            if (!mounted) return;
+                  if (!mounted) return;
 
-            setState(() {
-              image = newImage;
-            });
-          } catch (e) {
-            if (kDebugMode) {
-              print(e);
-            }
-          }
-        },
-        child: const Icon(Icons.camera_alt),
+                  setState(() {
+                    loading = false;
+                    image = newImage;
+                  });
+                } catch (e) {
+                  setState(() {
+                    loading = false;
+                  });
+                  if (kDebugMode) {
+                    print(e);
+                  }
+                }
+              },
+        child: loading
+            ? const CircularProgressIndicator(
+                color: Colors.black,
+              )
+            : const Icon(Icons.camera_alt),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

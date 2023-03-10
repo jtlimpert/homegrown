@@ -49,6 +49,17 @@ class GardenCard extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(10.0),
                 child: Image.network(
                   garden.images.first?.url ?? '',
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    );
+                  },
                   height: 350,
                   width: 350,
                   fit: BoxFit.cover,
