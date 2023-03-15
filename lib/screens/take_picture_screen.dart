@@ -10,15 +10,17 @@ import 'package:home_grown/database/database.dart';
 import 'package:home_grown/models/garden.dart';
 import 'package:home_grown/models/plant.dart';
 import 'package:home_grown/screens/garden_screen.dart';
+import 'package:home_grown/screens/preview_picture_screen.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../main.dart';
 
 class TakePictureScreen extends ConsumerStatefulWidget {
-  final CameraDescription camera;
   final String title;
   Garden? garden;
 
   TakePictureScreen({
     super.key,
-    required this.camera,
     required this.title,
     this.garden,
   });
@@ -30,28 +32,25 @@ class TakePictureScreen extends ConsumerStatefulWidget {
 class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
-  int selectedCamera = 0;
   List<File> capturedImages = [];
-  bool loading = false;
-
-  XFile? image;
-
-  initializeCamera(int cameraIndex) {
-    _controller = CameraController(widget.camera, ResolutionPreset.high,
-        enableAudio: false);
-    _initializeControllerFuture = _controller.initialize();
-  }
+  bool cameraLoading = false;
+  bool galleryLoading = false;
 
   @override
   void initState() {
     super.initState();
-    loading = false;
-    initializeCamera(selectedCamera);
+    cameraLoading = false;
+    galleryLoading = false;
+    _controller =
+        CameraController(cameras[0], ResolutionPreset.high, enableAudio: false);
+    _initializeControllerFuture = _controller.initialize();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    cameraLoading = false;
+    galleryLoading = false;
     super.dispose();
   }
 
@@ -61,126 +60,6 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
     database.selectedGardenId = '';
     if (widget.garden != null) {
       database.selectedGardenId = widget.garden!.id ?? '';
-    }
-    if (image != null) {
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: StreamBuilder(
-          stream: database.allGardenPlants,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const CircularProgressIndicator();
-            }
-            if (snapshot.error != null) {
-              return Text(snapshot.error.toString());
-            }
-            List<Plant> savedPlants = [];
-            for (var doc in snapshot.data.docs) {
-              savedPlants.add(Plant.fromMap(doc.data(), doc.id));
-            }
-            return Stack(
-              children: [
-                Image.file(
-                  File(image!.path),
-                ),
-                CustomPaint(
-                  size: Size.infinite,
-                  painter: MyPlantDrawingPainter(null, savedPlants, null),
-                ),
-                for (var plant in savedPlants)
-                  Positioned(
-                    left: plant.points[0]?.x,
-                    top: plant.points[0]?.y,
-                    height: 40,
-                    width: 40,
-                    child: Container(
-                      color: Colors.white,
-                      child: Icon(
-                        Icons.yard,
-                        size: 40.0,
-                        color: Color.fromRGBO(plant.icon.red, plant.icon.green,
-                            plant.icon.blue, plant.icon.opacity),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-        floatingActionButton: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FloatingActionButton(
-              onPressed: loading
-                  ? null
-                  : () async {
-                      setState(() {
-                        image = null;
-                        loading = false;
-                      });
-                    },
-              child: loading
-                  ? const CircularProgressIndicator(
-                      color: Colors.black,
-                    )
-                  : const Icon(Icons.delete),
-            ),
-            const Padding(padding: EdgeInsets.only(left: 20, right: 20)),
-            FloatingActionButton(
-              heroTag: 'photo',
-              onPressed: loading
-                  ? null
-                  : () async {
-                      setState(() {
-                        loading = true;
-                      });
-                      final file = File(image!.path);
-                      final storageRef = FirebaseStorage.instance.ref();
-                      final imageRef = storageRef.child(image!.name);
-                      try {
-                        await imageRef.putFile(file);
-                        var imageUrl = await imageRef.getDownloadURL();
-                        var imageName = imageRef.name;
-                        if (widget.garden != null &&
-                            widget.garden?.id != null) {
-                          await database.editGarden(
-                              widget.garden!, imageUrl, imageName);
-                        } else {
-                          await database.addNewGarden(Garden(
-                              images: [
-                                GardenImage(url: imageUrl, name: imageName)
-                              ],
-                              userId: FirebaseAuth.instance.currentUser!.uid,
-                              id: widget.garden?.id));
-                        }
-                        if (context.mounted) {
-                          setState(() {
-                            loading = false;
-                          });
-                          Navigator.pop(context);
-                        }
-                      } catch (e) {
-                        setState(() {
-                          loading = false;
-                        });
-                        if (kDebugMode) {
-                          print(e);
-                        }
-                      }
-                    },
-              child: loading
-                  ? const CircularProgressIndicator(
-                      color: Colors.black,
-                    )
-                  : const Icon(Icons.save),
-            ),
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      );
     }
     return Scaffold(
       backgroundColor: Colors.black,
@@ -208,8 +87,9 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
                   return Stack(
                     children: [
                       AspectRatio(
-                          aspectRatio: 1 / _controller.value.aspectRatio,
-                          child: CameraPreview(_controller)),
+                        aspectRatio: 1 / _controller.value.aspectRatio,
+                        child: CameraPreview(_controller),
+                      ),
                       CustomPaint(
                         size: Size.infinite,
                         painter: MyPlantDrawingPainter(null, savedPlants, null),
@@ -241,39 +121,87 @@ class _TakePictureScreenState extends ConsumerState<TakePictureScreen> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'photo',
-        onPressed: loading
-            ? null
-            : () async {
-                try {
-                  setState(() {
-                    loading = true;
-                  });
-                  await _initializeControllerFuture;
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          FloatingActionButton(
+            heroTag: 'photo',
+            onPressed: cameraLoading || galleryLoading
+                ? null
+                : () async {
+                    try {
+                      setState(() {
+                        cameraLoading = true;
+                      });
+                      await _initializeControllerFuture;
 
-                  final newImage = await _controller.takePicture();
+                      final cameraImage = await _controller.takePicture();
 
-                  if (!mounted) return;
+                      if (context.mounted) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => PreviewPictureScreen(
+                              image: cameraImage,
+                              cameraImage: true,
+                              garden: widget.garden,
+                            ),
+                          ),
+                        );
+                      }
 
-                  setState(() {
-                    loading = false;
-                    image = newImage;
-                  });
-                } catch (e) {
-                  setState(() {
-                    loading = false;
-                  });
-                  if (kDebugMode) {
-                    print(e);
-                  }
-                }
-              },
-        child: loading
-            ? const CircularProgressIndicator(
-                color: Colors.black,
-              )
-            : const Icon(Icons.camera_alt),
+                      setState(() {
+                        cameraLoading = false;
+                      });
+                    } catch (e) {
+                      setState(() {
+                        cameraLoading = false;
+                      });
+                      if (kDebugMode) {
+                        print(e);
+                      }
+                    }
+                  },
+            child: cameraLoading
+                ? const CircularProgressIndicator(
+                    color: Colors.black,
+                  )
+                : const Icon(Icons.camera_alt),
+          ),
+          const Padding(padding: EdgeInsets.only(left: 20, right: 20)),
+          FloatingActionButton(
+            heroTag: 'gallery',
+            onPressed: cameraLoading || galleryLoading
+                ? null
+                : () async {
+                    setState(() {
+                      galleryLoading = true;
+                    });
+                    final galleryImage = await ImagePicker()
+                        .pickImage(source: ImageSource.gallery);
+
+                    if (context.mounted && galleryImage != null) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => PreviewPictureScreen(
+                            image: galleryImage,
+                            cameraImage: false,
+                            garden: widget.garden,
+                          ),
+                        ),
+                      );
+                    }
+
+                    setState(() {
+                      galleryLoading = false;
+                    });
+                  },
+            child: galleryLoading
+                ? const CircularProgressIndicator(
+                    color: Colors.black,
+                  )
+                : const Icon(Icons.photo_library),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

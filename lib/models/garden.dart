@@ -1,16 +1,17 @@
 class Garden {
   final String userId;
   String? id;
+  String? updated;
   List<GardenImage?> images;
 
-  Garden({this.id, required this.userId, required this.images});
+  Garden({this.id, required this.userId, required this.images, this.updated});
 
   Map<String, dynamic> toMap() {
     var gardenImages = [];
     for (var element in images) {
       gardenImages.add(element?.toMap());
     }
-    return {'images': gardenImages, 'userId': userId};
+    return {'images': gardenImages, 'userId': userId, 'updated': updated};
   }
 
   factory Garden.fromMap(Map<String, dynamic> map, String reference) {
@@ -19,7 +20,11 @@ class Garden {
     images.asMap().forEach((key, value) {
       gardenImages.add(GardenImage.fromMap(value, key.toString()));
     });
-    return Garden(images: gardenImages, id: reference, userId: map['userId']);
+    return Garden(
+        images: gardenImages,
+        id: reference,
+        userId: map['userId'],
+        updated: map['updated']);
   }
 }
 

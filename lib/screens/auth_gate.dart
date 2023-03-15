@@ -6,9 +6,7 @@ import 'package:home_grown/screens/garden_list_screen.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class AuthGate extends StatelessWidget {
-  final CameraDescription camera;
-
-  const AuthGate({super.key, required this.camera});
+  const AuthGate({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +43,8 @@ class AuthGate extends StatelessWidget {
                     );
                   }
 
-                  return GardenListScreen(
+                  return const GardenListScreen(
                     title: 'Garden',
-                    camera: camera,
                   );
                 },
               );

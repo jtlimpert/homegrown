@@ -10,9 +10,8 @@ import 'package:home_grown/screens/take_picture_screen.dart';
 
 class GardenCard extends ConsumerWidget {
   final Garden garden;
-  final CameraDescription camera;
 
-  const GardenCard({super.key, required this.garden, required this.camera});
+  const GardenCard({super.key, required this.garden});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -124,14 +123,13 @@ class GardenCard extends ConsumerWidget {
             children: [
               IconButton(
                 icon: const Icon(
-                  Icons.camera_alt,
+                  Icons.add_a_photo,
                 ),
                 onPressed: () async {
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => TakePictureScreen(
+                            title: 'Update Garden Picture',
                             garden: garden,
-                            camera: camera,
-                            title: 'Camera',
                           )));
                 },
               ),

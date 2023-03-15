@@ -9,10 +9,8 @@ import 'package:home_grown/widgets/garden_card.dart';
 
 class GardenListScreen extends ConsumerWidget {
   final String title;
-  final CameraDescription camera;
 
-  const GardenListScreen(
-      {super.key, required this.title, required this.camera});
+  const GardenListScreen({super.key, required this.title});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final database = ref.watch(databaseProvider);
@@ -45,7 +43,6 @@ class GardenListScreen extends ConsumerWidget {
                   itemCount: snapshot.data.docs.length,
                   itemBuilder: (BuildContext context, int index) {
                     return GardenCard(
-                        camera: camera,
                         garden: Garden.fromMap(snapshot.data.docs[index].data(),
                             snapshot.data.docs[index].id));
                   },
@@ -61,12 +58,11 @@ class GardenListScreen extends ConsumerWidget {
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => TakePictureScreen(
-                      camera: camera,
-                      title: 'Camera',
+                      title: "Take Garden Picture",
                     )));
           },
           tooltip: 'Camera',
-          child: const Icon(Icons.camera_alt),
+          child: const Icon(Icons.add_a_photo),
         ));
   }
 }

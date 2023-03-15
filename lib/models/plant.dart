@@ -4,13 +4,15 @@ class Plant {
   final String gardenId;
   final PlantIcon icon;
   String? id;
+  String? updated;
 
   Plant(
       {required this.name,
       required this.points,
       this.id,
       required this.gardenId,
-      required this.icon});
+      required this.icon,
+      this.updated});
 
   Map<String, dynamic> toMap() {
     var touchPoints = [];
@@ -22,7 +24,8 @@ class Plant {
       'name': name,
       'offsets': touchPoints,
       'gardenId': gardenId,
-      'icon': icon.toMap()
+      'icon': icon.toMap(),
+      'updated': updated
     };
   }
 
@@ -40,7 +43,8 @@ class Plant {
         points: touchPoints,
         id: reference,
         gardenId: map['gardenId'],
-        icon: plantIcon);
+        icon: plantIcon,
+        updated: map['updated']);
   }
 }
 

@@ -60,7 +60,7 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Access is needed to take pictures of your garden.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Explanation on why the microphone access is needed.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Access is needed to load pictures from your library.</string>
 </dict>
 </plist>

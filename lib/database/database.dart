@@ -69,7 +69,10 @@ class Database {
     newGardenImages.insert(0, {'name': imageName, 'url': imageUrl});
 
     try {
-      await gardens.doc(oldGarden.id).update({'images': newGardenImages});
+      await gardens.doc(oldGarden.id).update({
+        'images': newGardenImages,
+        'updated': DateTime.now().millisecondsSinceEpoch.toString()
+      });
       return true;
     } catch (e) {
       if (kDebugMode) {
@@ -92,7 +95,10 @@ class Database {
   Future<bool> editPlant(String name, String plantId) async {
     _plants = _firestore.collection('plants');
     try {
-      await _plants.doc(plantId).update({'name': name});
+      await _plants.doc(plantId).update({
+        'name': name,
+        'updated': DateTime.now().millisecondsSinceEpoch.toString()
+      });
       return true;
     } catch (e) {
       return Future.error(e);

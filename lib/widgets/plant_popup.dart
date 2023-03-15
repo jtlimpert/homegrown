@@ -93,7 +93,8 @@ class _PlantPopupState extends ConsumerState<PlantPopup> {
                     name: plantName,
                     points: widget.plant.points,
                     gardenId: widget.plant.gardenId,
-                    icon: widget.plant.icon);
+                    icon: widget.plant.icon,
+                    updated: DateTime.now().millisecondsSinceEpoch.toString());
                 await database.addNewPlant(newPlant);
               }
               if (context.mounted) {

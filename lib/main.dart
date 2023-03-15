@@ -5,10 +5,11 @@ import 'package:home_grown/screens/auth_gate.dart';
 import 'firebase_options.dart';
 import 'package:camera/camera.dart';
 
+List<CameraDescription> cameras = [];
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final cameras = await availableCameras();
+  cameras = await availableCameras();
   final firstCamera = cameras.first;
 
   runApp(ProviderScope(
@@ -28,6 +29,6 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.lightGreen,
         ),
-        home: AuthGate(camera: camera));
+        home: AuthGate());
   }
 }
