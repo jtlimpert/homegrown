@@ -58,7 +58,7 @@ class GardenListScreen extends ConsumerWidget {
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => TakePictureScreen(
-                      title: "Take Garden Picture",
+                      title: "Garden Picture",
                     )));
           },
           tooltip: 'Camera',
