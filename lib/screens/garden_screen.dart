@@ -4,7 +4,6 @@ import 'package:home_grown/models/plant.dart';
 import 'package:home_grown/widgets/plant_popup.dart';
 import 'package:touchable/touchable.dart';
 import 'package:home_grown/database/database.dart';
-import 'package:animate_icons/animate_icons.dart';
 
 class GardenScreen extends ConsumerStatefulWidget {
   final String imageUrl;
@@ -22,147 +21,18 @@ class _GardenScreenState extends ConsumerState<GardenScreen>
 
   bool isOpened = false;
   bool shouldDraw = false;
-  late AnimationController _animationController;
-  late Animation<double> _translateButton;
-  final Curve _curve = Curves.easeOut;
-  double _fabHeight = 56.0;
-  late AnimateIconController controller;
 
   late Color selectedColor;
 
   @override
   initState() {
     selectedColor = Colors.black;
-
-    _animationController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500))
-      ..addListener(() {
-        setState(() {});
-      });
-    _translateButton = Tween<double>(
-      begin: _fabHeight,
-      end: -14.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Interval(
-        0.0,
-        0.75,
-        curve: _curve,
-      ),
-    ));
-    controller = AnimateIconController();
     super.initState();
   }
 
   @override
   dispose() {
-    _animationController.dispose();
     super.dispose();
-  }
-
-  animate() {
-    if (!isOpened) {
-      _animationController.forward();
-    } else {
-      _animationController.reverse();
-    }
-    isOpened = !isOpened;
-  }
-
-  Widget blue() {
-    return FloatingActionButton(
-      heroTag: 'blue',
-      backgroundColor:
-          selectedColor == Colors.blue ? selectedColor : Colors.white,
-      onPressed: () {
-        setState(() {
-          selectedColor = Colors.blue;
-        });
-      },
-      child: ClipOval(
-        child: Container(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          height: 36,
-          width: 36,
-          color: Colors.blue,
-        ),
-      ),
-    );
-    ;
-  }
-
-  Widget black() {
-    return FloatingActionButton(
-      heroTag: 'black',
-      backgroundColor:
-          selectedColor == Colors.black ? selectedColor : Colors.white,
-      onPressed: () {
-        setState(() {
-          selectedColor = Colors.black;
-        });
-      },
-      child: ClipOval(
-        child: Container(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          height: 36,
-          width: 36,
-          color: Colors.black,
-        ),
-      ),
-    );
-  }
-
-  Widget red() {
-    return FloatingActionButton(
-      heroTag: 'red',
-      backgroundColor:
-          selectedColor == Colors.red ? selectedColor : Colors.white,
-      onPressed: () {
-        setState(() {
-          selectedColor = Colors.red;
-        });
-      },
-      child: ClipOval(
-        child: Container(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          height: 36,
-          width: 36,
-          color: Colors.red,
-        ),
-      ),
-    );
-  }
-
-  Widget toggle() {
-    return FloatingActionButton(
-      heroTag: 'toggle',
-      backgroundColor: Colors.white,
-      onPressed: null,
-      child: AnimateIcons(
-        startIcon: Icons.draw,
-        endIcon: Icons.close,
-        controller: controller,
-        size: 36.0,
-        onStartIconPress: () {
-          setState(() {
-            shouldDraw = !shouldDraw;
-          });
-          animate();
-          return true;
-        },
-        onEndIconPress: () {
-          setState(() {
-            shouldDraw = !shouldDraw;
-          });
-          animate();
-          return true;
-        },
-        duration: const Duration(milliseconds: 500),
-        startIconColor: selectedColor,
-        endIconColor: Colors.redAccent,
-        clockwise: false,
-      ),
-    );
   }
 
   @override
@@ -274,35 +144,15 @@ class _GardenScreenState extends ConsumerState<GardenScreen>
           ),
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          Transform(
-            transform: Matrix4.translationValues(
-              0.0,
-              _translateButton.value * 3.0,
-              0.0,
-            ),
-            child: red(),
-          ),
-          Transform(
-            transform: Matrix4.translationValues(
-              0.0,
-              _translateButton.value * 2.0,
-              0.0,
-            ),
-            child: blue(),
-          ),
-          Transform(
-            transform: Matrix4.translationValues(
-              0.0,
-              _translateButton.value,
-              0.0,
-            ),
-            child: black(),
-          ),
-          toggle(),
-        ],
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'toggle',
+        onPressed: () {
+          setState(() {
+            shouldDraw = !shouldDraw;
+          });
+        },
+        backgroundColor: shouldDraw ? Colors.red : null,
+        child: shouldDraw ? const Icon(Icons.close) : const Icon(Icons.edit),
       ),
     );
   }
@@ -361,12 +211,12 @@ class MyPlantPainter extends CustomPainter {
   MyPlantPainter(this.context, this.setState, this.plantsToDraw);
 
   @override
-  void paint(Canvas _canvas, Size size) {
-    TouchyCanvas canvas = TouchyCanvas(context, _canvas);
+  void paint(Canvas canvas, Size size) {
+    TouchyCanvas touchCanvas = TouchyCanvas(context, canvas);
     for (var plant in plantsToDraw) {
       for (int i = 0; i < plant.points.length - 1; i++) {
         if (plant.points[i] != null && plant.points[i + 1] != null) {
-          canvas.drawLine(
+          touchCanvas.drawLine(
             Offset(plant.points[i]!.x, plant.points[i]!.y),
             Offset(plant.points[i + 1]!.x, plant.points[i + 1]!.y),
             Paint()
